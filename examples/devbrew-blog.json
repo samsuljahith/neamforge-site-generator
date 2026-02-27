@@ -1,0 +1,96 @@
+{
+  "site_name": "DevBrew Blog",
+  "tagline": "Coffee-Fueled Code & Tutorials",
+  "description": "A minimal developer blog with tutorials and articles.",
+  "author": "DevBrew",
+  "base_url": "/",
+  "language": "en",
+
+  "theme": {
+    "primary_color": "#059669",
+    "secondary_color": "#0891B2",
+    "accent_color": "#D97706",
+    "background": "#FFFFFF",
+    "text_color": "#111827",
+    "font_heading": "Georgia, serif",
+    "font_body": "system-ui, sans-serif",
+    "border_radius": "4px"
+  },
+
+  "navigation": [
+    { "label": "Home",    "href": "index.html" },
+    { "label": "Articles", "href": "articles.html" },
+    { "label": "About",   "href": "about.html" }
+  ],
+
+  "pages": [
+    {
+      "slug": "index",
+      "title": "Home",
+      "template": "hero",
+      "sections": [
+        {
+          "type": "hero",
+          "headline": "Welcome to DevBrew",
+          "subheadline": "Practical tutorials and insights for modern developers.",
+          "cta_text": "Read Articles",
+          "cta_link": "articles.html"
+        },
+        {
+          "type": "features",
+          "title": "What We Cover",
+          "items": [
+            { "icon": "🐍", "title": "Python",     "description": "From basics to advanced patterns, Django, FastAPI, and data science." },
+            { "icon": "🌐", "title": "Web Dev",     "description": "HTML, CSS, JavaScript, React, and full-stack tutorials." },
+            { "icon": "🛠️", "title": "DevOps",     "description": "Docker, CI/CD, Kubernetes, and infrastructure as code." }
+          ]
+        }
+      ]
+    },
+    {
+      "slug": "articles",
+      "title": "Articles",
+      "template": "content",
+      "sections": [
+        {
+          "type": "page_header",
+          "title": "All Articles",
+          "subtitle": "Browse our latest tutorials and guides"
+        },
+        {
+          "type": "cards",
+          "items": [
+            { "title": "Getting Started with Neam",         "description": "Learn the basics of the Neam programming language and build your first agent.",          "price": "15 min read" },
+            { "title": "Docker for Beginners",              "description": "A hands-on guide to containerizing your applications with Docker and Docker Compose.",   "price": "20 min read" },
+            { "title": "Building REST APIs with FastAPI",   "description": "Create a production-ready API with Python, FastAPI, and automatic documentation.",       "price": "25 min read" }
+          ]
+        }
+      ]
+    },
+    {
+      "slug": "about",
+      "title": "About",
+      "template": "content",
+      "sections": [
+        {
+          "type": "page_header",
+          "title": "About DevBrew",
+          "subtitle": "Who we are and why we write"
+        },
+        {
+          "type": "text_block",
+          "content": "DevBrew is a developer blog created by a small team of engineers who love sharing what they learn. We believe the best way to learn is to teach, and we aim to make complex topics approachable for everyone."
+        }
+      ]
+    }
+  ],
+
+  "footer": {
+    "copyright": "© 2026 DevBrew. Open source and free forever.",
+    "links": [],
+    "social": [
+      { "platform": "GitHub", "url": "https://github.com/devbrew" },
+      { "platform": "Twitter", "url": "https://twitter.com/devbrew" }
+    ]
+  }
+}

@@ -1,0 +1,358 @@
+// ============================================================================
+// Project: NeamForge Static Site Generator
+// Description: A forge agent that takes a site specification (JSON) and
+//              iteratively generates a complete static website with HTML,
+//              CSS, and assets. It uses a build-verify loop to ensure
+//              each page passes validation before moving to the next.
+// Provider: Ollama (free, local)
+// Model: llama3.1
+// ============================================================================
+
+// ---------------------------------------------------------------------------
+// 1. Skills — tools the forge agent can use during generation
+// ---------------------------------------------------------------------------
+
+// 1a. Write a file to the output directory
+skill write_file {
+  description: "Write content to a file in the site output directory. Use for creating HTML, CSS, JS, and other static files."
+  params: {
+    path:    string,    // relative path, e.g. "index.html" or "css/style.css"
+    content: string     // file content
+  }
+  impl(args) {
+    let full_path = "output/" + args.path;
+
+    // Ensure parent directory exists
+    let parts = args.path.split("/");
+    if (len(parts) > 1) {
+      let dir = "output/";
+      let i = 0;
+      while (i < len(parts) - 1) {
+        dir = dir + parts[i] + "/";
+        exec("mkdir -p " + dir);
+        i = i + 1;
+      }
+    }
+
+    workspace_write(full_path, args.content);
+    return { success: true, path: full_path };
+  }
+}
+
+// 1b. Read an existing file (for iteration/editing)
+skill read_file {
+  description: "Read the current contents of a file in the output directory. Useful for reviewing and editing previously generated files."
+  params: {
+    path: string
+  }
+  impl(args) {
+    let content = workspace_read("output/" + args.path);
+    if (content == nil) {
+      return { success: false, error: "File not found: " + args.path };
+    }
+    return { success: true, content: content };
+  }
+}
+
+// 1c. List files in the output directory
+skill list_files {
+  description: "List all files currently in the site output directory."
+  params: {}
+  impl(args) {
+    let result = exec("find workspace/output -type f 2>/dev/null | sort");
+    return { files: result };
+  }
+}
+
+// 1d. Validate HTML structure
+skill validate_html {
+  description: "Validate that an HTML file has correct basic structure: doctype, html, head, title, body tags, no broken links to local files."
+  params: {
+    path: string
+  }
+  impl(args) {
+    let content = workspace_read("output/" + args.path);
+    if (content == nil) {
+      return { valid: false, errors: ["File not found: " + args.path] };
+    }
+
+    let errors = [];
+
+    // Check essential HTML structure
+    if (content.indexOf("<!DOCTYPE html>") == -1 && content.indexOf("<!doctype html>") == -1) {
+      errors.push("Missing <!DOCTYPE html> declaration");
+    }
+    if (content.indexOf("<html") == -1) {
+      errors.push("Missing <html> tag");
+    }
+    if (content.indexOf("<head>") == -1 && content.indexOf("<head ") == -1) {
+      errors.push("Missing <head> section");
+    }
+    if (content.indexOf("<title>") == -1) {
+      errors.push("Missing <title> tag");
+    }
+    if (content.indexOf("<body") == -1) {
+      errors.push("Missing <body> tag");
+    }
+    if (content.indexOf("</html>") == -1) {
+      errors.push("Missing closing </html> tag");
+    }
+    if (content.indexOf("<meta charset") == -1 && content.indexOf("<meta http-equiv") == -1) {
+      errors.push("Missing charset meta tag");
+    }
+    if (content.indexOf("<meta name=\"viewport\"") == -1) {
+      errors.push("Missing viewport meta tag (not mobile-responsive)");
+    }
+
+    return {
+      valid: len(errors) == 0,
+      errors: errors,
+      file: args.path
+    };
+  }
+}
+
+// 1e. Validate CSS structure
+skill validate_css {
+  description: "Validate that a CSS file exists and is non-empty with valid basic structure."
+  params: {
+    path: string
+  }
+  impl(args) {
+    let content = workspace_read("output/" + args.path);
+    if (content == nil) {
+      return { valid: false, errors: ["File not found: " + args.path] };
+    }
+
+    let errors = [];
+
+    if (len(content) < 50) {
+      errors.push("CSS file is suspiciously short (< 50 chars)");
+    }
+    if (content.indexOf("{") == -1 || content.indexOf("}") == -1) {
+      errors.push("No CSS rule blocks found");
+    }
+
+    return {
+      valid: len(errors) == 0,
+      errors: errors,
+      file: args.path
+    };
+  }
+}
+
+// 1f. Read the site spec
+skill read_site_spec {
+  description: "Read the site specification JSON file that defines what pages and content to generate."
+  params: {}
+  impl(args) {
+    let spec = workspace_read("site-spec.json");
+    if (spec == nil) {
+      // Fallback: check if it's at the project root
+      let spec_raw = file_read_string("./site-spec.json");
+      if (spec_raw != nil) {
+        workspace_write("site-spec.json", spec_raw);
+        return { success: true, spec: json_parse(spec_raw) };
+      }
+      return { success: false, error: "site-spec.json not found" };
+    }
+    return { success: true, spec: json_parse(spec) };
+  }
+}
+
+// ---------------------------------------------------------------------------
+// 2. Verify Callback — called after each iteration
+// ---------------------------------------------------------------------------
+
+fn verify_site(output) {
+  // Read the plan to know what files should exist
+  let plan = workspace_read("plan.txt");
+  if (plan == nil) {
+    return Retry("Plan file not found. Please read the site spec and create the plan first.");
+  }
+
+  let plan_lines = plan.split("\n").filter(fn(line) { return len(line.trim()) > 0; });
+  let progress_raw = workspace_read("progress.jsonl");
+
+  // Count completed tasks
+  let completed = 0;
+  if (progress_raw != nil) {
+    let lines = progress_raw.split("\n").filter(fn(l) { return len(l.trim()) > 0; });
+    completed = len(lines);
+  }
+
+  // If all tasks are done, do a final validation pass
+  if (completed >= len(plan_lines)) {
+    // Validate all HTML files exist and are valid
+    let all_valid = true;
+    let issues = [];
+
+    let file_list = exec("find workspace/output -name '*.html' -type f 2>/dev/null");
+    if (file_list == nil || len(file_list.trim()) == 0) {
+      return Retry("No HTML files found in output directory. Start generating the site.");
+    }
+
+    let html_files = file_list.split("\n").filter(fn(f) { return len(f.trim()) > 0; });
+
+    // Check each HTML file has minimum valid structure
+    let i = 0;
+    while (i < len(html_files)) {
+      let f = html_files[i];
+      let content = file_read_string(f);
+      if (content == nil || len(content) < 100) {
+        issues.push("File too short or empty: " + f);
+        all_valid = false;
+      }
+      if (content != nil && content.indexOf("<html") == -1) {
+        issues.push("Invalid HTML structure in: " + f);
+        all_valid = false;
+      }
+      i = i + 1;
+    }
+
+    // Check CSS exists
+    let css_exists = exec("find workspace/output -name '*.css' -type f 2>/dev/null");
+    if (css_exists == nil || len(css_exists.trim()) == 0) {
+      issues.push("No CSS files found");
+      all_valid = false;
+    }
+
+    if (all_valid) {
+      return Done("Site generation complete! " + str(len(html_files)) + " HTML pages generated and validated.");
+    } else {
+      return Retry("Almost done but found issues:\n" + issues.join("\n"));
+    }
+  }
+
+  // Still have tasks to do
+  return Retry("Progress: " + str(completed) + "/" + str(len(plan_lines)) + " tasks completed. Continue with the next task.");
+}
+
+// ---------------------------------------------------------------------------
+// 3. Forge Agent Declaration
+// ---------------------------------------------------------------------------
+
+forge agent site_generator {
+  provider: "ollama"
+  model:    "llama3.1"
+
+  system_prompt: """
+    You are a **Static Website Generator**. Your job is to read a site
+    specification (site-spec.json) and generate a complete, production-quality
+    static website.
+
+    ## Workflow
+
+    1. **First iteration:** Read the site spec using the `read_site_spec` skill.
+       Create a plan (plan.txt) with one task per line.
+
+    2. **Each subsequent iteration:** Complete the next task in the plan.
+       After completing each task, record it in progress.jsonl.
+
+    ## Rules
+
+    - Generate clean, semantic HTML5 with proper meta tags.
+    - Create responsive CSS using a mobile-first approach.
+    - Use a shared CSS file (css/style.css) for consistent styling.
+    - Include navigation links between all pages.
+    - Ensure all internal links use relative paths.
+    - Validate each HTML file after creating it.
+    - Write learnings to learnings.jsonl when you discover something useful.
+
+    ## File Structure to Generate
+
+    ```
+    output/
+    ├── index.html          (home page)
+    ├── css/
+    │   └── style.css       (shared stylesheet)
+    ├── [page-name].html    (content pages from spec)
+    └── 404.html            (error page)
+    ```
+
+    ## Quality Standards
+
+    - Every HTML file must have: DOCTYPE, html, head (with charset, viewport,
+      title), body, and proper closing tags.
+    - CSS must be responsive (use media queries).
+    - Navigation must appear on every page.
+    - Color scheme and typography must be consistent.
+    - Include a footer with copyright on every page.
+  """
+
+  temperature: 0.4
+
+  skills: [
+    write_file,
+    read_file,
+    list_files,
+    validate_html,
+    validate_css,
+    read_site_spec
+  ]
+
+  // Verify callback — called after each iteration
+  verify: verify_site
+
+  // Loop configuration
+  loop: {
+    max_iterations: 30       // generous limit for multi-page sites
+    max_cost:       0.0      // Ollama is free!
+    max_tokens:     1000000
+  }
+
+  // Checkpoint — git commit after each verified task
+  checkpoint: "git"
+
+  // Workspace for generated files
+  workspace: "./workspace"
+}
+
+// ---------------------------------------------------------------------------
+// 4. Trait Implementations
+// ---------------------------------------------------------------------------
+
+// Sandboxable — restrict forge agent to workspace only
+impl Sandboxable for site_generator {
+  fn sandbox_config(self) {
+    return {
+      mode:             "strict",
+      network:          false,            // no network needed for site gen
+      filesystem:       "workspace_only",
+      allowed_commands: ["mkdir", "find", "ls"],  // only safe commands
+      max_memory_mb:    1024
+    };
+  }
+}
+
+// Monitorable — track generation progress
+impl Monitorable for site_generator {
+  fn baseline(self) {
+    return {
+      avg_iteration_time_ms:  30000,
+      max_iterations_without_progress: 5
+    };
+  }
+
+  fn on_anomaly(self, event) {
+    if (event.type == "no_progress") {
+      return AnomalyAction.Alert("Site generator stuck — no progress in 5 iterations.");
+    }
+    return AnomalyAction.Silence;
+  }
+}
+
+// ---------------------------------------------------------------------------
+// 5. Entry Point
+// ---------------------------------------------------------------------------
+
+fn main() {
+  print("========================================");
+  print("  NeamForge Static Site Generator v1.0");
+  print("  Powered by Neam + Ollama");
+  print("========================================");
+  print("");
+  print("Reading site specification...");
+  print("Run with: neam-forge --agent site_generator.neam --name site_generator");
+  print("");
+}

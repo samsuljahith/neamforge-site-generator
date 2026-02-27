@@ -1,0 +1,17 @@
+# Neam
+*.neamb
+.neam/
+
+# Environment
+.env
+
+# Workspace (runtime generated)
+workspace/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/

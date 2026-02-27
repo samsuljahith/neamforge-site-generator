@@ -1,0 +1,236 @@
+{
+  "site_name": "CloudPeak Studios",
+  "tagline": "Creative Digital Solutions",
+  "description": "A modern portfolio and services website for a fictional creative agency.",
+  "author": "CloudPeak Studios",
+  "base_url": "/",
+  "language": "en",
+
+  "theme": {
+    "primary_color": "#2563EB",
+    "secondary_color": "#7C3AED",
+    "accent_color": "#F59E0B",
+    "background": "#FAFAFA",
+    "text_color": "#1F2937",
+    "font_heading": "system-ui, -apple-system, sans-serif",
+    "font_body": "system-ui, -apple-system, sans-serif",
+    "border_radius": "8px"
+  },
+
+  "navigation": [
+    { "label": "Home",     "href": "index.html" },
+    { "label": "Services", "href": "services.html" },
+    { "label": "Portfolio", "href": "portfolio.html" },
+    { "label": "About",    "href": "about.html" },
+    { "label": "Contact",  "href": "contact.html" }
+  ],
+
+  "pages": [
+    {
+      "slug": "index",
+      "title": "Home",
+      "template": "hero",
+      "sections": [
+        {
+          "type": "hero",
+          "headline": "We Build Digital Experiences That Matter",
+          "subheadline": "Strategy. Design. Development. Results.",
+          "cta_text": "View Our Work",
+          "cta_link": "portfolio.html"
+        },
+        {
+          "type": "features",
+          "title": "Why Choose Us",
+          "items": [
+            {
+              "icon": "🎨",
+              "title": "Creative Design",
+              "description": "Award-winning designs that capture your brand's essence and engage your audience."
+            },
+            {
+              "icon": "⚡",
+              "title": "Fast Performance",
+              "description": "Lightning-fast websites optimized for speed, SEO, and conversion."
+            },
+            {
+              "icon": "📱",
+              "title": "Mobile First",
+              "description": "Responsive experiences that look perfect on every device and screen size."
+            }
+          ]
+        },
+        {
+          "type": "stats",
+          "items": [
+            { "number": "150+", "label": "Projects Delivered" },
+            { "number": "50+",  "label": "Happy Clients" },
+            { "number": "12",   "label": "Team Members" },
+            { "number": "8",    "label": "Years Experience" }
+          ]
+        }
+      ]
+    },
+    {
+      "slug": "services",
+      "title": "Our Services",
+      "template": "content",
+      "sections": [
+        {
+          "type": "page_header",
+          "title": "Our Services",
+          "subtitle": "Comprehensive digital solutions tailored to your needs"
+        },
+        {
+          "type": "cards",
+          "items": [
+            {
+              "title": "Web Design & Development",
+              "description": "Custom websites built with modern technologies. From landing pages to complex web applications, we create solutions that drive results.",
+              "price": "From $5,000"
+            },
+            {
+              "title": "Brand Identity",
+              "description": "Complete brand packages including logo design, color palettes, typography, and brand guidelines that tell your story.",
+              "price": "From $3,000"
+            },
+            {
+              "title": "Digital Marketing",
+              "description": "SEO, content strategy, social media management, and paid advertising campaigns that grow your online presence.",
+              "price": "From $2,000/mo"
+            },
+            {
+              "title": "UI/UX Design",
+              "description": "User research, wireframing, prototyping, and usability testing to create intuitive digital experiences.",
+              "price": "From $4,000"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "slug": "portfolio",
+      "title": "Our Portfolio",
+      "template": "gallery",
+      "sections": [
+        {
+          "type": "page_header",
+          "title": "Our Work",
+          "subtitle": "Selected projects from our portfolio"
+        },
+        {
+          "type": "project_grid",
+          "items": [
+            {
+              "title": "Freshbite Food Delivery",
+              "category": "Web App",
+              "description": "A modern food delivery platform with real-time tracking and seamless checkout.",
+              "tags": ["React", "Node.js", "PostgreSQL"]
+            },
+            {
+              "title": "Zenith Fitness",
+              "category": "Brand + Website",
+              "description": "Complete rebrand and website redesign for a premium fitness studio chain.",
+              "tags": ["Branding", "WordPress", "SEO"]
+            },
+            {
+              "title": "Lumina Smart Home",
+              "category": "Mobile App",
+              "description": "IoT dashboard and mobile app for smart home device management.",
+              "tags": ["Flutter", "Firebase", "IoT"]
+            },
+            {
+              "title": "Atlas Travel Co.",
+              "category": "E-commerce",
+              "description": "Luxury travel booking platform with personalized itinerary planning.",
+              "tags": ["Shopify", "Custom Theme", "API"]
+            },
+            {
+              "title": "GreenLeaf Organics",
+              "category": "Marketing",
+              "description": "Digital marketing campaign that increased online sales by 240% in 6 months.",
+              "tags": ["SEO", "PPC", "Content"]
+            },
+            {
+              "title": "CodeVault IDE",
+              "category": "SaaS Product",
+              "description": "Cloud-based code editor with real-time collaboration and AI assistance.",
+              "tags": ["TypeScript", "WebSockets", "AI"]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "slug": "about",
+      "title": "About Us",
+      "template": "content",
+      "sections": [
+        {
+          "type": "page_header",
+          "title": "About CloudPeak Studios",
+          "subtitle": "Our story, mission, and the team behind the work"
+        },
+        {
+          "type": "text_block",
+          "content": "Founded in 2018, CloudPeak Studios started as a two-person team with a shared passion for creating exceptional digital experiences. Today, we're a team of 12 designers, developers, and strategists who believe that great design is not just about aesthetics—it's about solving real problems for real people.\n\nOur approach combines human-centered design thinking with cutting-edge technology to deliver solutions that are not only beautiful but also functional, accessible, and performant."
+        },
+        {
+          "type": "team",
+          "title": "Meet the Team",
+          "members": [
+            { "name": "Sarah Chen",     "role": "Founder & Creative Director" },
+            { "name": "Marcus Rivera",  "role": "Lead Developer" },
+            { "name": "Aisha Patel",    "role": "UX Research Lead" },
+            { "name": "James Okafor",   "role": "Marketing Director" }
+          ]
+        },
+        {
+          "type": "values",
+          "title": "Our Values",
+          "items": [
+            { "title": "Quality Over Quantity",    "description": "We take on fewer projects to give each one the attention it deserves." },
+            { "title": "Transparent Communication", "description": "No jargon, no surprises. We keep you informed at every step." },
+            { "title": "Continuous Learning",       "description": "We stay ahead of trends and constantly improve our craft." }
+          ]
+        }
+      ]
+    },
+    {
+      "slug": "contact",
+      "title": "Contact Us",
+      "template": "contact",
+      "sections": [
+        {
+          "type": "page_header",
+          "title": "Get In Touch",
+          "subtitle": "Ready to start your project? Let's talk."
+        },
+        {
+          "type": "contact_info",
+          "email": "hello@cloudpeak.studio",
+          "phone": "+1 (555) 123-4567",
+          "address": "742 Innovation Drive, San Francisco, CA 94102",
+          "hours": "Monday – Friday, 9 AM – 6 PM PST"
+        },
+        {
+          "type": "contact_form",
+          "fields": ["name", "email", "subject", "message"],
+          "note": "This is a static site — the form uses a mailto: action as a placeholder."
+        }
+      ]
+    }
+  ],
+
+  "footer": {
+    "copyright": "© 2026 CloudPeak Studios. All rights reserved.",
+    "links": [
+      { "label": "Privacy Policy",  "href": "#" },
+      { "label": "Terms of Service", "href": "#" }
+    ],
+    "social": [
+      { "platform": "Twitter",  "url": "https://twitter.com/cloudpeak" },
+      { "platform": "GitHub",   "url": "https://github.com/cloudpeak" },
+      { "platform": "LinkedIn", "url": "https://linkedin.com/company/cloudpeak" }
+    ]
+  }
+}
