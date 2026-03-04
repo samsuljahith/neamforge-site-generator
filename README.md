@@ -1,474 +1,321 @@
-# 🔨 NeamForge Static Site Generator
+<div align="center">
 
-**An AI agent that reads a JSON spec and autonomously builds a complete, validated static website — powered by the Neam programming language.**
+# NeamForge Site Generator
+
+### Built with Neam's Forge Agent — From JSON Spec to Validated Website, Autonomously
+
+[![Neam](https://img.shields.io/badge/Built%20with-Neam-6366f1?style=for-the-badge)](https://github.com/neam-lang/neam)
+[![Ollama](https://img.shields.io/badge/Powered%20by-Ollama-000000?style=for-the-badge)](https://ollama.com)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg?style=for-the-badge)](LICENSE)
+
+> **Describe your website in JSON. The Forge Agent builds every page, validates every file, and commits every step — all autonomously. Zero cloud cost.**
+
+</div>
 
 ---
 
-## 📌 What Is This Project?
+## The Business Problem
 
-This project is an **autonomous static website generator** built using the **Forge Agent** architecture from the **Neam programming language**. You give it a JSON file describing your website (pages, theme, content), and it **iteratively generates every HTML page and CSS file** through an automated build-verify loop — validating each file before moving on, and creating a git commit at every checkpoint.
+Building websites is expensive, slow, and inconsistent. Here's who gets hurt:
 
-It runs **100% locally** using Ollama (no paid APIs), and produces a ready-to-deploy static site from a single JSON specification.
-
----
-
-## 🌍 Real-World Problem It Solves
-
-### The Problem
-
-Creating static websites is one of the most common development tasks, yet it remains surprisingly painful:
-
-- **Non-developers** (freelancers, small business owners, designers) need websites but can't code HTML/CSS. Website builders like Wix/Squarespace cost **$15–$50/month** and produce bloated, slow sites.
-- **Developers** spend hours writing repetitive boilerplate — doctype declarations, meta tags, responsive CSS, navigation, footers — for every page. A 5-page website easily takes **8–16 hours** of manual work.
-- **AI code generators** (ChatGPT, Copilot) can write HTML, but they generate one file at a time with **no consistency** between pages — different styles, broken navigation, missing meta tags.
-- **No quality assurance** — generated code often has missing doctypes, broken links, non-responsive layouts, and accessibility issues that only surface after deployment.
-
-### How This Project Solves It
-
-The NeamForge Site Generator takes a fundamentally different approach — it uses an **iterative build-verify loop** where every generated file is validated before proceeding:
-
-| Problem | Our Solution |
+| Who's Affected | The Pain |
 |---|---|
-| Non-developers can't code | **JSON spec** — describe your site in plain structured data, no HTML knowledge needed |
-| Hours of repetitive boilerplate | **AI generates everything** — complete HTML5, responsive CSS, navigation, footers |
-| Inconsistent multi-page output | **Shared stylesheet + plan** — agent follows a task plan ensuring all pages match |
-| No quality assurance | **Verify callback** — validates DOCTYPE, meta tags, structure, responsiveness after every file |
-| Can't track what happened | **Git checkpoints** — every verified task creates a git commit, full audit trail |
-| Expensive cloud APIs | **Ollama + llama3.1** — runs 100% free on local hardware |
-| No recovery from errors | **Retry loop** — verify callback sends feedback, agent fixes issues automatically |
-| One-off generation | **Spec-driven** — change the JSON, regenerate. Ship 2 example specs included |
-
-The result: you write a ~100 line JSON spec, run one command, and get a **complete, validated, multi-page static website** with full git history showing how it was built — in minutes, for $0.
+| Freelancers & small businesses | Wix/Squarespace: $15–$50/month — bloated, slow, no ownership |
+| Developers | 8–16 hours of repetitive boilerplate for a 5-page site — doctype, meta tags, nav, footer, responsiveness on every single page |
+| Teams using AI code generators | ChatGPT/Copilot: generates one file at a time, **no consistency** — different styles, broken navigation, missing meta tags across pages |
+| Anyone shipping fast | Zero quality assurance — broken links, non-responsive layouts, missing accessibility tags only surface after deployment |
 
 ---
 
-## 🎯 What I Built
+## How I Solved It with Neam
 
-### Core Agent (`site_generator.neam` — 358 lines)
+I used **Neam's Forge Agent** — an iterative build-verify agent type — to create a site generator that:
 
-A single Neam source file that defines the complete generation pipeline:
+1. **Reads your intent**: Takes a simple JSON spec describing your pages, theme, and content
+2. **Plans the build**: Auto-creates a task list — one task per file to generate
+3. **Builds iteratively**: Generates HTML and CSS one task at a time, with fresh context each iteration
+4. **Self-validates**: After every file, calls a verify callback that checks 8 HTML quality rules
+5. **Self-corrects**: If validation fails, the agent gets the exact error and fixes it automatically
+6. **Commits every step**: `checkpoint: "git"` creates a commit after every verified task — full audit trail
 
-**1. Six Purpose-Built Skills**
+**You write ~100 lines of JSON. You get a complete, validated, multi-page website in minutes. For $0.**
 
-| Skill | What It Does | Why It's Needed |
+---
+
+## How It Works — The Build-Verify Loop
+
+```mermaid
+sequenceDiagram
+    participant U as 🧑 You
+    participant F as 🔨 Forge Agent
+    participant V as ✅ verify_site()
+    participant W as 📁 Workspace output/
+    participant G as 🗂️ Git
+
+    U->>F: site-spec.json
+
+    F->>W: [Iter 1] Read spec → Write plan.txt (7 tasks)
+    F->>V: verify_site()
+    V-->>F: Retry("0/7 tasks done. Start generating.")
+
+    F->>W: [Iter 2] Generate css/style.css
+    F->>V: verify_site()
+    V-->>F: Retry("1/7 done")
+    F->>G: git commit "Verified: Generate style.css"
+
+    F->>W: [Iter 3] Generate index.html
+    F->>V: verify_site()
+    V-->>F: Retry("2/7 done")
+    F->>G: git commit "Verified: Generate index.html"
+
+    Note over F,G: ...continues for each page (services, portfolio, about, contact)...
+
+    F->>W: [Iter 8] Generate 404.html
+    F->>V: verify_site() — all tasks done, validate every HTML file
+    V-->>F: Done("7 pages generated and validated!")
+    F->>G: git commit "Site generation complete"
+
+    G-->>U: Complete website with full git history
+```
+
+---
+
+## System Architecture
+
+```mermaid
+flowchart TB
+    Spec["📄 site-spec.json\n(your intent)"]
+
+    subgraph Forge["🔨 Forge Agent Loop"]
+        Agent["🦙 Ollama llama3.1\n(code generator)"]
+        Skills["🔧 6 Skills\n(write, read, list,\nvalidate HTML, validate CSS, read spec)"]
+        Verify["✅ verify_site()\n(progress check + 8 HTML rules)"]
+    end
+
+    subgraph Output["📁 Workspace"]
+        Plan["plan.txt\n(agent's task list)"]
+        Progress["progress.jsonl\n(completed tasks)"]
+        Site["output/\nindex.html, pages, css/"]
+        Git[("🗂️ git history\none commit per task")]
+    end
+
+    Spec --> Agent
+    Agent -->|generate files| Skills
+    Skills -->|write| Site
+    Skills -->|track| Progress
+    Agent -->|after each iteration| Verify
+    Verify -->|Done ✅| Git
+    Verify -->|Retry with feedback 🔄| Agent
+```
+
+---
+
+## The Verify Callback — Quality Gate
+
+Every generated file passes through **8 HTML checks** before the agent moves on:
+
+```mermaid
+flowchart LR
+    File["Generated\nFile"] --> D1{"DOCTYPE\npresent?"}
+    D1 -->|❌| Fix["🔄 Retry:\nAgent gets exact\nerror + fixes it"]
+    D1 -->|✅| D2{"html, head,\nbody tags?"}
+    D2 -->|❌| Fix
+    D2 -->|✅| D3{"charset +\nviewport meta?"}
+    D3 -->|❌| Fix
+    D3 -->|✅| D4{"CSS file\nexists?"}
+    D4 -->|❌| Fix
+    D4 -->|✅| Commit["✅ git commit\n+ next task"]
+```
+
+If any check fails, the agent receives the **exact error message** and self-corrects. This is the Forge pattern: build → verify → fix → verify again.
+
+---
+
+## Forge Agent vs Claw Agent
+
+This project uses a **Forge Agent** — a fundamentally different agent type:
+
+| Aspect | Claw Agent (Support Bot) | Forge Agent (This Project) |
 |---|---|---|
-| `write_file` | Write HTML/CSS/JS files to output directory | Core generation — creates all site files |
-| `read_file` | Read existing files for review/editing | Enables iteration — agent can check and fix its own work |
-| `list_files` | List all generated files | Progress tracking — agent knows what exists |
-| `validate_html` | Check HTML for DOCTYPE, meta tags, structure | Quality gate — catches 8 common HTML issues |
-| `validate_css` | Check CSS for valid rule blocks, minimum size | Quality gate — ensures CSS isn't empty/broken |
-| `read_site_spec` | Load and parse the site specification JSON | Entry point — reads what to generate |
-
-**2. HTML Validation (8 Checks)**
-
-The `validate_html` skill checks every generated page for:
-1. `<!DOCTYPE html>` declaration present
-2. `<html>` tag exists
-3. `<head>` section exists
-4. `<title>` tag exists
-5. `<body>` tag exists
-6. `</html>` closing tag present
-7. `<meta charset>` for character encoding
-8. `<meta name="viewport">` for mobile responsiveness
-
-**3. Verify Callback (`verify_site`)**
-
-The core of the Forge pattern — called after every iteration:
-
-```
-verify_site(output) {
-  1. Check if plan.txt exists → Retry("create the plan first")
-  2. Count completed tasks in progress.jsonl
-  3. If all tasks done:
-     - Find all .html files in output/
-     - Validate each has <html> tag and minimum length
-     - Check CSS files exist
-     - All valid? → Done("Site generation complete!")
-     - Issues found? → Retry("fix these: ...")
-  4. If tasks remain → Retry("Progress: 3/7. Continue next task.")
-}
-```
-
-This creates a self-correcting loop: the agent generates → verify checks → if issues, agent gets feedback and fixes → verify again → eventually all tasks pass.
-
-**4. Forge Agent Configuration**
-```neam
-forge agent site_generator {
-  provider:    "ollama"
-  model:       "llama3.1"
-  temperature: 0.4
-  verify:      verify_site           // callback after each iteration
-  checkpoint:  "git"                 // commit per verified task
-  loop: {
-    max_iterations: 30               // generous for multi-page sites
-    max_cost:       0.0              // Ollama is free!
-    max_tokens:     1000000
-  }
-}
-```
-
-Key Forge concepts:
-- **Fresh context per iteration** — no accumulated history (unlike Claw), agent gets clean context each time
-- **Plan file** — one task per line, agent creates this in iteration 1
-- **Progress file** — JSONL log of completed tasks
-- **Learnings file** — JSONL log of agent insights during generation
-- **VerifyResult** — `Done(message)`, `Retry(feedback)`, or `Abort(reason)`
-
-**5. Two Trait Implementations**
-- **Sandboxable** — strict mode: no network access, workspace-only filesystem, only `mkdir`/`find`/`ls` commands allowed, 1GB memory cap
-- **Monitorable** — detects when agent gets stuck (no progress in 5 iterations triggers alert)
-
-### Site Specifications
-
-**Default: CloudPeak Studios (Agency Portfolio)**
-- 5 content pages: Home (hero + features + stats), Services (4 service cards), Portfolio (6 project cards with tags), About (story + team + values), Contact (info + form)
-- Complete theme config: colors, fonts, border radius
-- Navigation, footer with social links, copyright
-- ~150 lines of JSON
-
-**Example: DevBrew Blog (Developer Blog)**
-- 3 content pages: Home (hero + topics), Articles (3 article cards), About
-- Different theme (green palette, serif headings)
-- Simpler structure, demonstrates spec flexibility
-- ~80 lines of JSON
-
-### Docker Setup
-
-- **Dockerfile** — multi-stage build with git installed (for checkpoints)
-- **docker-compose.yml** — Ollama + Forge agent + Nginx preview server
-- **nginx.conf** — serves generated site at `localhost:3000` with proper routing and caching
-- **run.sh** — one-command local runner with pre-flight checks
+| **Purpose** | Ongoing conversation | Complete a build task with a defined end state |
+| **Context per turn** | Accumulates history | Fresh context every iteration |
+| **Verify callback** | Not available | Core mechanism — called after every iteration |
+| **Git checkpoint** | Not available | Automatic commit per verified task |
+| **Loop end condition** | User stops talking | `Done()` signal / budget exhausted |
+| **Best for** | Chatbot, assistant | Code generator, builder, automation pipeline |
 
 ---
 
-## 🏗️ Architecture
+## Input: A Simple JSON Spec
 
-### Build-Verify Loop
-
-```
-                    ┌─────────────────────────────────────────────┐
-                    │              FORGE LOOP                      │
-                    │                                             │
-  site-spec.json   │  ┌──────────┐    ┌──────────────────────┐  │
-  ────────────────▶│  │ Iteration│    │    🦙 Ollama         │  │
-                    │  │    1     │───▶│    llama3.1          │  │
-                    │  │ (Plan)   │    │  Generate next task   │  │
-                    │  └──────────┘    └──────────┬───────────┘  │
-                    │                             │              │
-                    │                   ┌─────────▼──────────┐   │
-                    │                   │      Skills        │   │
-                    │                   │  write / validate  │   │
-                    │                   └─────────┬──────────┘   │
-                    │                             │              │
-                    │                   ┌─────────▼──────────┐   │
-                    │            ┌──────│   verify_site()    │   │
-                    │            │      └──────┬─────────────┘   │
-                    │            │             │                 │
-                    │     Retry(feedback)    Done!               │
-                    │            │             │                 │
-                    │            ▼             ▼                 │
-                    │     ┌──────────┐  ┌──────────────┐        │
-                    │     │ Next     │  │ Git Commit   │        │
-                    │     │Iteration │  │ + Complete   │        │
-                    │     └──────────┘  └──────────────┘        │
-                    └─────────────────────────────────────────────┘
-```
-
-### Iteration Breakdown (Typical 7-Page Site)
-
-| Iteration | What Happens | Verify Result |
-|---|---|---|
-| 1 | Read `site-spec.json`, create `plan.txt` with 7 tasks | Retry("0/7 tasks done") |
-| 2 | Generate `css/style.css` (shared responsive stylesheet) | Retry("1/7 done") → git commit |
-| 3 | Generate `index.html` (home page with hero, features, stats) | Retry("2/7 done") → git commit |
-| 4 | Generate `services.html` | Retry("3/7 done") → git commit |
-| 5 | Generate `portfolio.html` | Retry("4/7 done") → git commit |
-| 6 | Generate `about.html` | Retry("5/7 done") → git commit |
-| 7 | Generate `contact.html` | Retry("6/7 done") → git commit |
-| 8 | Generate `404.html` | All tasks done → final validation |
-| 9+ | Fix any validation issues (missing meta tags, etc.) | Retry with specific feedback |
-| Final | All HTML validated, CSS exists | **Done!** → git commit |
-
-### Generated Output Structure
-
-```
-workspace/
-├── site-spec.json            # Input specification
-├── plan.txt                  # Auto-generated task list
-├── progress.jsonl            # Completed task log
-├── learnings.jsonl           # Agent insights
-├── .git/                     # Full generation history
-└── output/                   # THE GENERATED WEBSITE
-    ├── index.html            # Home page
-    ├── services.html         # Services page
-    ├── portfolio.html        # Portfolio page
-    ├── about.html            # About page
-    ├── contact.html          # Contact page
-    ├── 404.html              # Error page
-    └── css/
-        └── style.css         # Shared responsive stylesheet
-```
-
----
-
-## 💡 How The Forge Pattern Differs From Claw
-
-Understanding why this project uses a **Forge Agent** instead of a **Claw Agent** is key:
-
-| Aspect | Claw Agent (Project 1) | Forge Agent (This Project) |
-|---|---|---|
-| **Purpose** | Ongoing conversation | Complete a build task |
-| **Context** | Accumulates history across turns | Fresh context every iteration |
-| **Session** | Persistent (JSONL, compaction) | None — each iteration is independent |
-| **Channels** | CLI, HTTP (for user interaction) | None — runs autonomously |
-| **Verify** | Not available (would cause compile error) | Required — the core mechanism |
-| **Checkpoint** | Not available | Git commits per verified task |
-| **Loop** | Runs until user stops talking | Runs until Done/Abort/budget exhausted |
-| **Memory** | Semantic memory persists across sessions | Learnings file, plan file |
-| **Use Case** | Support bot, assistant, chatbot | Code generator, builder, pipeline |
-
-The Forge pattern is purpose-built for **tasks with a defined end state** — in our case, "all pages generated and validated."
-
----
-
-## 🚀 Quick Start
-
-### Option A: Docker (Recommended — Fully Reproducible)
-
-```bash
-git clone https://github.com/YOUR_USERNAME/neamforge-site-generator.git
-cd neamforge-site-generator
-
-# Build and run (Ollama + Forge + Preview server)
-docker compose up --build
-
-# First run pulls llama3.1 (~4.7 GB) — takes 5-10 minutes
-# Agent starts generating automatically. Watch the terminal for progress.
-
-# Once complete, preview the site:
-# Open http://localhost:3000
-
-# Generate a different site:
-docker compose run \
-  -v ./examples/devbrew-blog.json:/home/neam/site-spec.json \
-  site-generator
-```
-
-### Option B: Local (Shell Script)
-
-```bash
-git clone https://github.com/YOUR_USERNAME/neamforge-site-generator.git
-cd neamforge-site-generator
-
-# Ensure Ollama is running
-ollama serve &
-ollama pull llama3.1
-
-# Generate with default spec (CloudPeak Studios)
-chmod +x run.sh
-./run.sh
-
-# OR generate with a different spec
-./run.sh examples/devbrew-blog.json
-
-# Preview the result
-cd workspace/output
-python3 -m http.server 3000
-# Open http://localhost:3000
-```
-
-### Option C: Manual Steps
-
-```bash
-# Compile
-neamc site_generator.neam -o site_generator.neamb
-
-# Setup workspace
-mkdir -p workspace/output
-cp site-spec.json workspace/site-spec.json
-cd workspace && git init && git config user.email "forge@neam" && git config user.name "NeamForge" && cd ..
-
-# Run
-neam-forge --agent site_generator.neamb --name site_generator --workspace ./workspace --verbose
-```
-
----
-
-## 📸 Viewing Generation History (Git Checkpoints)
-
-Since the agent uses `checkpoint: "git"`, every verified task is a git commit:
-
-```bash
-cd workspace
-git log --oneline
-
-# Example output:
-# a3f2d1c Verified: Generate 404.html
-# 8b1e4a9 Verified: Generate contact.html
-# 2c7f6d3 Verified: Generate about.html
-# f1a9b2e Verified: Generate portfolio.html
-# 6d4c8a1 Verified: Generate services.html
-# 9e2b5f7 Verified: Generate index.html
-# 3a8d1c4 Verified: Generate css/style.css
-# 7f6e2b9 Verified: Create plan from site-spec.json
-
-# See what was generated in a specific step
-git show 9e2b5f7
-
-# Diff between any two steps
-git diff 3a8d1c4 9e2b5f7
-
-# Rollback to a previous state
-git checkout 6d4c8a1
-```
-
-This is a powerful feature for **debugging**, **auditing**, and **understanding the agent's decision-making process**.
-
----
-
-## 🎨 Creating Your Own Site Spec
-
-Create a JSON file following this structure:
+You describe your site in JSON — no HTML knowledge needed:
 
 ```json
 {
-  "site_name": "My Website",
-  "tagline": "A short description",
+  "site_name": "CloudPeak Studios",
+  "tagline": "We build digital experiences",
   "theme": {
     "primary_color": "#3B82F6",
-    "secondary_color": "#8B5CF6",
-    "background": "#FFFFFF",
-    "text_color": "#1F2937",
     "font_heading": "Georgia, serif",
     "font_body": "system-ui, sans-serif"
   },
-  "navigation": [
-    { "label": "Home", "href": "index.html" },
-    { "label": "About", "href": "about.html" }
-  ],
   "pages": [
     {
       "slug": "index",
       "title": "Home",
       "sections": [
-        { "type": "hero", "headline": "Welcome!", "subheadline": "..." },
-        { "type": "features", "title": "Why Us", "items": [...] }
+        { "type": "hero", "headline": "Build Something Remarkable" },
+        { "type": "features", "items": ["Fast", "Responsive", "Accessible"] }
       ]
-    }
-  ],
-  "footer": { "copyright": "© 2026 My Website" }
+    },
+    { "slug": "about",   "title": "About Us",  "sections": [...] },
+    { "slug": "contact", "title": "Contact",   "sections": [...] }
+  ]
 }
 ```
 
-### Supported Section Types
+**Output**: A complete multi-page website — shared CSS, consistent navigation, validated HTML, full git history.
 
-| Section Type | Description | Key Fields |
-|---|---|---|
-| `hero` | Full-width banner with CTA | headline, subheadline, cta_text, cta_link |
-| `features` | Grid of icon cards | title, items: [{icon, title, description}] |
-| `stats` | Number showcase row | items: [{number, label}] |
-| `page_header` | Page title + subtitle | title, subtitle |
-| `cards` | Content card grid | items: [{title, description, price}] |
-| `project_grid` | Portfolio cards with tags | items: [{title, category, description, tags}] |
-| `text_block` | Paragraph content | content (string) |
-| `team` | Team member cards | title, members: [{name, role}] |
-| `values` | Value proposition list | title, items: [{title, description}] |
-| `contact_info` | Contact details | email, phone, address, hours |
-| `contact_form` | HTML form | fields: ["name", "email", ...] |
+---
 
-Then run:
+## Supported Section Types
+
+| Section | Description |
+|---|---|
+| `hero` | Full-width banner with headline + CTA button |
+| `features` | Grid of icon cards |
+| `stats` | Number showcase row |
+| `cards` | Content card grid (services, pricing) |
+| `project_grid` | Portfolio cards with tags |
+| `team` | Team member cards |
+| `contact_info` | Email, phone, address, hours |
+| `contact_form` | HTML form with custom fields |
+| `text_block` | Paragraph content |
+
+---
+
+## Business Impact
+
+| Metric | Manual Dev | AI One-Shot (ChatGPT) | NeamForge |
+|---|---|---|---|
+| Time for 5-page site | 8–16 hours | ~1 hour (inconsistent) | **5–15 minutes** |
+| Cost | Developer hourly rate | Cloud API cost | **$0** |
+| Cross-page consistency | Depends on developer | Often broken | **Guaranteed (shared CSS)** |
+| HTML quality validation | Manual testing | None | **Automated (8 checks per file)** |
+| Audit trail | Manual git commits | None | **Automatic git per task** |
+
+---
+
+## Quick Start
+
+### Docker (Recommended)
+
 ```bash
-./run.sh my-custom-spec.json
+git clone https://github.com/samsuljahith/neamforge-site-generator.git
+cd neamforge-site-generator
+
+docker compose up --build
+# Agent starts generating automatically — watch the terminal for progress
+# Preview the site: http://localhost:3000
+
+# Generate a different site:
+docker compose run site-generator examples/devbrew-blog.json
+```
+
+### Local
+
+```bash
+git clone https://github.com/samsuljahith/neamforge-site-generator.git
+cd neamforge-site-generator
+
+ollama pull llama3.1
+chmod +x run.sh
+
+./run.sh                           # CloudPeak Studios (default, 5 pages)
+./run.sh examples/devbrew-blog.json  # DevBrew Blog (3 pages)
+
+# Preview
+cd workspace/output && python3 -m http.server 3000
 ```
 
 ---
 
-## 📁 Project Structure
+## Generated Output
+
+```
+workspace/
+├── plan.txt                  # Auto-generated task list (created in iteration 1)
+├── progress.jsonl            # Completed task log
+├── learnings.jsonl           # Agent insights during generation
+├── .git/                     # Full generation history — one commit per task
+└── output/
+    ├── index.html
+    ├── services.html
+    ├── portfolio.html
+    ├── about.html
+    ├── contact.html
+    ├── 404.html
+    └── css/
+        └── style.css
+```
+
+View the generation history — every step is a git commit:
+
+```bash
+cd workspace && git log --oneline
+
+# a3f2d1c Verified: Generate 404.html
+# 8b1e4a9 Verified: Generate contact.html
+# f1a9b2e Verified: Generate portfolio.html
+# 9e2b5f7 Verified: Generate index.html
+# 3a8d1c4 Verified: Generate css/style.css
+# 7f6e2b9 Verified: Create plan from site-spec.json
+```
+
+---
+
+## Project Structure
 
 ```
 neamforge-site-generator/
-├── site_generator.neam       # Complete agent source (358 lines)
-│                               ├── 6 skill definitions
-│                               ├── verify_site() callback
-│                               ├── Forge agent declaration
-│                               ├── 2 trait implementations
-│                               └── Entry point
+├── site_generator.neam       # Complete agent — 358 lines
 ├── site-spec.json            # Default spec (CloudPeak Studios — 5 pages)
 ├── examples/
 │   └── devbrew-blog.json     # Alternative spec (DevBrew Blog — 3 pages)
-├── run.sh                    # One-command local runner with pre-flight checks
-├── docker-compose.yml        # Ollama + Forge + Nginx preview
+├── run.sh                    # One-command local runner
+├── docker-compose.yml        # Ollama + Forge agent + Nginx preview
 ├── Dockerfile                # Multi-stage build with git
 ├── nginx.conf                # Preview server config
-├── .env.example              # Environment template
-├── .gitignore
 └── README.md
 ```
 
 ---
 
-## 🧠 Neam Language Concepts Demonstrated
+## Neam Concepts Demonstrated
 
-| Neam Concept | What It Is | Where Used |
-|---|---|---|
-| `forge agent` | Iterative build-verify agent type | Main agent declaration |
-| `verify` callback | Function called after each iteration | `verify_site()` — progress check + HTML validation |
-| `Done(message)` | Signal that the task is complete | When all pages validated |
-| `Retry(feedback)` | Signal to try again with feedback | When tasks remain or issues found |
-| `Abort(reason)` | Signal to stop permanently | Available for critical failures |
-| `checkpoint: "git"` | Git commit per verified task | Full generation audit trail |
-| `loop` config | Iteration/cost/token limits | max_iterations: 30, max_cost: 0.0 |
-| `skill` with `params` shorthand | Agent-callable tools | 6 skills: write, read, list, validate, spec |
-| `workspace` | Persistent file storage | Generated site output + tracking files |
-| `workspace_read`/`write` | Native workspace I/O | File generation and reading |
-| `exec()` | Shell command execution | `mkdir -p`, `find` for file listing |
-| `file_read_string()` | Raw file reading | Verify callback reads generated HTML |
-| `json_parse`/`json_stringify` | JSON handling | Site spec parsing |
-| `impl Sandboxable` | Security sandbox config | No network, workspace-only, safe commands only |
-| `impl Monitorable` | Anomaly detection | Stuck detection (5 iterations without progress) |
-| `plan.txt` | One task per line | Created by agent in iteration 1 |
-| `progress.jsonl` | Completed task log | Updated after each task |
-| `learnings.jsonl` | Agent insight log | Written when agent discovers useful patterns |
+| Neam Concept | What It Does in This Project |
+|---|---|
+| `forge agent` | Iterative build-verify agent type |
+| `verify` callback | `verify_site()` — progress check + 8-rule HTML validation |
+| `Done(message)` | Signal completion when all pages are validated |
+| `Retry(feedback)` | Send specific error back to agent for self-correction |
+| `Abort(reason)` | Stop permanently on unrecoverable failure |
+| `checkpoint: "git"` | Automatic git commit per verified task |
+| `loop` config | `max_iterations: 30`, `max_cost: 0.0` (Ollama is free) |
+| `skill` (6 tools) | write_file, read_file, list_files, validate_html, validate_css, read_site_spec |
+| `workspace` | Generated site output + tracking files |
+| `exec()` | Shell commands for `mkdir`, `find` |
+| `plan.txt` | Agent's self-created task list (one task per line) |
+| `progress.jsonl` | Completed task log — drives verify progress check |
+| `impl Sandboxable` | No network, workspace-only filesystem |
+| `impl Monitorable` | Detects stuck agent (5 iterations without progress) |
 
 ---
 
-## 🔄 Loop Outcomes
-
-The Forge loop terminates in one of four ways:
-
-| Outcome | When It Happens | Exit Code |
-|---|---|---|
-| ✅ **Completed** | `verify_site()` returns `Done(...)` — all pages valid | 0 |
-| ⏱️ **MaxIterations** | Hit 30 iteration limit without completing | 1 |
-| 🚫 **Aborted** | `verify_site()` returns `Abort(...)` — unrecoverable error | 1 |
-| 💸 **BudgetExhausted** | Token limit (1M) reached | 1 |
-
-Since we use Ollama (free), `max_cost: 0.0` means cost-based termination never triggers.
-
----
-
-## ⚙️ Configuration Reference
-
-| Parameter | Value | Why |
-|---|---|---|
-| `provider` | `ollama` | Free, local, no API keys |
-| `model` | `llama3.1` | Best open model for structured code generation |
-| `temperature` | `0.4` | Slightly creative for varied HTML/CSS output |
-| `max_iterations` | `30` | Generous for 5–10 page sites plus fix iterations |
-| `max_cost` | `0.0` | Ollama is free — no cost tracking needed |
-| `max_tokens` | `1000000` | ~1M tokens for full site generation |
-| `checkpoint` | `"git"` | Full audit trail of generation steps |
-
----
-
-## 📄 License
+## License
 
 MIT License
 
 ---
 
-## 🙏 Acknowledgments
-
-- **Neam Language** — [neam-lang/neam](https://github.com/neam-lang/neam)
-- **Ollama** — [ollama.com](https://ollama.com) for free local LLM inference
-- **Mentor** — Praveen Govindaraj for project guidance
+Built with the [Neam programming language](https://github.com/neam-lang/neam) · Powered by [Ollama](https://ollama.com) · Guided by [Praveen Govindaraj](https://github.com/Praveengovianalytics)
